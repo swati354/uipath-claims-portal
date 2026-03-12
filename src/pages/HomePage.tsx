@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import type { CaseInstanceGetResponse } from '@uipath/uipath-typescript/cases';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Dashboard } from '@/components/claims/Dashboard';
 import { ClaimsList } from '@/components/claims/ClaimsList';
@@ -6,21 +7,10 @@ import { CaseDetail } from '@/components/claims/CaseDetail';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster } from '@/components/ui/sonner';
 export type View = 'dashboard' | 'claims-list' | 'case-detail';
-export interface Claim {
-  id: string;
-  policyHolder: string;
-  claimType: string;
-  status: 'Open' | 'In Progress' | 'Pending Review' | 'Approved' | 'Rejected' | 'Closed';
-  stage: string;
-  priority: 'Low' | 'Medium' | 'High' | 'Critical';
-  createdDate: string;
-  lastUpdated: string;
-  assignedOfficer: string;
-}
 export function HomePage() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
-  const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
-  const handleViewClaim = (claim: Claim) => {
+  const [selectedClaim, setSelectedClaim] = useState<CaseInstanceGetResponse | null>(null);
+  const handleViewClaim = (claim: CaseInstanceGetResponse) => {
     setSelectedClaim(claim);
     setCurrentView('case-detail');
   };
@@ -35,7 +25,6 @@ export function HomePage() {
   return (
     <AppLayout container={false} className="bg-gray-50">
       <ThemeToggle className="fixed top-4 right-4 z-50" />
-      {/* Top Navigation Bar */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
@@ -43,7 +32,12 @@ export function HomePage() {
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                 </div>
                 <h1 className="text-xl font-semibold text-gray-900">Claims Portal</h1>
@@ -82,14 +76,9 @@ export function HomePage() {
           </div>
         </div>
       </div>
-      {/* Main Content */}
       <div className="min-h-screen">
-        {currentView === 'dashboard' && (
-          <Dashboard onViewAllClaims={() => setCurrentView('claims-list')} />
-        )}
-        {currentView === 'claims-list' && (
-          <ClaimsList onViewClaim={handleViewClaim} />
-        )}
+        {currentView === 'dashboard' && <Dashboard onViewAllClaims={() => setCurrentView('claims-list')} />}
+        {currentView === 'claims-list' && <ClaimsList onViewClaim={handleViewClaim} />}
         {currentView === 'case-detail' && selectedClaim && (
           <CaseDetail claim={selectedClaim} onBack={handleBackToList} />
         )}

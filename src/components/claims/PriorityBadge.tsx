@@ -1,3 +1,4 @@
+import React from 'react';
 interface PriorityBadgeProps {
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
 }
