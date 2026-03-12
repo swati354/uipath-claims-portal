@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Home, Layers, Compass, Star, Settings, LifeBuoy } from "lucide-react";
 import {
   Sidebar,
@@ -15,8 +15,7 @@ import {
   SidebarMenuAction,
   SidebarMenuBadge,
 } from "@/components/ui/sidebar";
-
-export function AppSidebar(): JSX.Element {
+export function AppSidebar(): React.JSX.Element {
   return (
     <Sidebar>
       <SidebarHeader>
@@ -49,9 +48,7 @@ export function AppSidebar(): JSX.Element {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
-
         <SidebarSeparator />
-
         <SidebarGroup>
           <SidebarGroupLabel>Quick Links</SidebarGroupLabel>
           <SidebarMenu>
