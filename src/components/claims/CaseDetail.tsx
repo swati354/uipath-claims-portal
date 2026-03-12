@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ArrowLeft, Calendar, User, AlertCircle } from 'lucide-react';
 import type { CaseInstanceGetResponse } from '@uipath/uipath-typescript/cases';
 import { CaseInstances } from '@uipath/uipath-typescript/cases';
 import { useAuth } from '@/hooks/useAuth';
+import { usePolling } from '@/hooks/usePolling';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClaimStatusBadge } from './ClaimStatusBadge';
@@ -19,26 +20,15 @@ export function CaseDetail({ claim, onBack }: CaseDetailProps) {
   const { sdk } = useAuth();
   const caseInstances = useMemo(() => (sdk ? new CaseInstances(sdk) : null), [sdk]);
   const [activeTab, setActiveTab] = useState('data');
-  const [fullCaseData, setFullCaseData] = useState<CaseInstanceGetResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    if (!caseInstances) return;
-    const load = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const fullData = await caseInstances.getById(claim.instanceId, claim.folderKey);
-        setFullCaseData(fullData);
-      } catch (err) {
-        console.error('CaseDetail load error:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load case details');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    load();
-  }, [caseInstances, claim.instanceId, claim.folderKey]);
+  const { data: fullCaseData, isLoading, error, isActive } = usePolling({
+    fetchFn: async () => {
+      if (!caseInstances) throw new Error('SDK not initialized');
+      return caseInstances.getById(claim.instanceId, claim.folderKey);
+    },
+    interval: 10000,
+    enabled: !!caseInstances && !!claim.instanceId,
+    deps: [claim.instanceId],
+  });
   const displayClaim = fullCaseData || claim;
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
@@ -56,6 +46,12 @@ export function CaseDetail({ claim, onBack }: CaseDetailProps) {
                 {displayClaim.instanceId.slice(0, 12)}
               </h1>
               <ClaimStatusBadge status={displayClaim.latestRunStatus} />
+              {isActive && (
+                <span className="flex items-center gap-1 text-xs text-gray-400">
+                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                  Live
+                </span>
+              )}
             </div>
             <p className="text-base text-gray-600">
               {displayClaim.caseTitle || displayClaim.instanceDisplayName || 'Case Details'}
@@ -101,7 +97,7 @@ export function CaseDetail({ claim, onBack }: CaseDetailProps) {
       </div>
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-red-600">{error.message}</p>
         </div>
       )}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
