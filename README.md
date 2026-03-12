@@ -2,7 +2,7 @@
 
 A professional, enterprise-grade claims management portal for claims officers to monitor and manage Home HO-5 insurance claims through UiPath Case Management. The portal provides a comprehensive analytics dashboard showing key metrics and trends, a searchable list of active claims with filtering capabilities, and detailed case views with timeline visualization.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/swati354/uipath-claims-portal)
 
 ## Overview
 
@@ -159,7 +159,7 @@ const { data, isLoading, isActive } = usePolling({
 
 ### Deploy to Cloudflare Pages
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/swati354/uipath-claims-portal)
 
 #### Manual Deployment
 
