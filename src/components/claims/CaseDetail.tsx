@@ -1,39 +1,30 @@
-import React, { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ArrowLeft, Calendar, User, AlertCircle } from 'lucide-react';
-import type { CaseInstanceGetResponse } from '@uipath/uipath-typescript/cases';
-import { CaseInstances } from '@uipath/uipath-typescript/cases';
-import { useAuth } from '@/hooks/useAuth';
-import { usePolling } from '@/hooks/usePolling';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClaimStatusBadge } from './ClaimStatusBadge';
+import { PriorityBadge } from './PriorityBadge';
 import { CaseDataTab } from './CaseDataTab';
 import { CaseTimelineTab } from './CaseTimelineTab';
 import { CaseDocumentsTab } from './CaseDocumentsTab';
 import { CaseTasksTab } from './CaseTasksTab';
 import { CaseAuditTab } from './CaseAuditTab';
+import type { Claim } from '@/pages/HomePage';
 interface CaseDetailProps {
-  claim: CaseInstanceGetResponse;
+  claim: Claim;
   onBack: () => void;
 }
 export function CaseDetail({ claim, onBack }: CaseDetailProps) {
-  const { sdk } = useAuth();
-  const caseInstances = useMemo(() => (sdk ? new CaseInstances(sdk) : null), [sdk]);
   const [activeTab, setActiveTab] = useState('data');
-  const { data: fullCaseData, isLoading, error, isActive } = usePolling({
-    fetchFn: async () => {
-      if (!caseInstances) throw new Error('SDK not initialized');
-      return caseInstances.getById(claim.instanceId, claim.folderKey);
-    },
-    interval: 10000,
-    enabled: !!caseInstances && !!claim.instanceId,
-    deps: [claim.instanceId],
-  });
-  const displayClaim = fullCaseData || claim;
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
       <div className="mb-4">
-        <Button variant="ghost" size="sm" onClick={onBack} className="-ml-2 text-gray-600 hover:text-gray-900">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="-ml-2 text-gray-600 hover:text-gray-900"
+        >
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back to Claims
         </Button>
@@ -42,64 +33,46 @@ export function CaseDetail({ claim, onBack }: CaseDetailProps) {
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                {displayClaim.instanceId.slice(0, 12)}
-              </h1>
-              <ClaimStatusBadge status={displayClaim.latestRunStatus} />
-              {isActive && (
-                <span className="flex items-center gap-1 text-xs text-gray-400">
-                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                  Live
-                </span>
-              )}
+              <h1 className="text-2xl font-semibold text-gray-900">{claim.id}</h1>
+              <ClaimStatusBadge status={claim.status} />
+              <PriorityBadge priority={claim.priority} />
             </div>
-            <p className="text-base text-gray-600">
-              {displayClaim.caseTitle || displayClaim.instanceDisplayName || 'Case Details'}
-            </p>
+            <p className="text-base text-gray-600">{claim.claimType}</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
               <User className="w-4 h-4" />
-              <span>Started By</span>
+              <span>Policy Holder</span>
             </div>
-            <p className="text-sm font-medium text-gray-900">{displayClaim.startedByUser || 'System'}</p>
+            <p className="text-sm font-medium text-gray-900">{claim.policyHolder}</p>
           </div>
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
               <AlertCircle className="w-4 h-4" />
-              <span>Status</span>
+              <span>Current Stage</span>
             </div>
-            <p className="text-sm font-medium text-gray-900">{displayClaim.latestRunStatus}</p>
+            <p className="text-sm font-medium text-gray-900">{claim.stage}</p>
           </div>
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
               <Calendar className="w-4 h-4" />
-              <span>Started Date</span>
+              <span>Created Date</span>
             </div>
             <p className="text-sm font-medium text-gray-900">
-              {new Date(displayClaim.startedTime).toLocaleDateString()}
+              {new Date(claim.createdDate).toLocaleDateString()}
             </p>
           </div>
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Calendar className="w-4 h-4" />
-              <span>Completed Date</span>
+              <User className="w-4 h-4" />
+              <span>Assigned Officer</span>
             </div>
-            <p className="text-sm font-medium text-gray-900">
-              {displayClaim.completedTime
-                ? new Date(displayClaim.completedTime).toLocaleDateString()
-                : 'In Progress'}
-            </p>
+            <p className="text-sm font-medium text-gray-900">{claim.assignedOfficer}</p>
           </div>
         </div>
       </div>
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-red-600">{error.message}</p>
-        </div>
-      )}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <div className="bg-white border border-gray-200 rounded-lg">
           <TabsList className="w-full justify-start rounded-none border-b border-gray-200 bg-transparent p-0">
@@ -135,30 +108,21 @@ export function CaseDetail({ claim, onBack }: CaseDetailProps) {
             </TabsTrigger>
           </TabsList>
           <div className="p-6">
-            {isLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-sm text-gray-600">Loading case details...</p>
-              </div>
-            ) : (
-              <>
-                <TabsContent value="data" className="mt-0">
-                  <CaseDataTab claim={displayClaim} />
-                </TabsContent>
-                <TabsContent value="timeline" className="mt-0">
-                  <CaseTimelineTab claim={displayClaim} />
-                </TabsContent>
-                <TabsContent value="documents" className="mt-0">
-                  <CaseDocumentsTab claim={displayClaim} />
-                </TabsContent>
-                <TabsContent value="tasks" className="mt-0">
-                  <CaseTasksTab claim={displayClaim} />
-                </TabsContent>
-                <TabsContent value="audit" className="mt-0">
-                  <CaseAuditTab claim={displayClaim} />
-                </TabsContent>
-              </>
-            )}
+            <TabsContent value="data" className="mt-0">
+              <CaseDataTab claimId={claim.id} />
+            </TabsContent>
+            <TabsContent value="timeline" className="mt-0">
+              <CaseTimelineTab claimId={claim.id} stage={claim.stage} />
+            </TabsContent>
+            <TabsContent value="documents" className="mt-0">
+              <CaseDocumentsTab claimId={claim.id} />
+            </TabsContent>
+            <TabsContent value="tasks" className="mt-0">
+              <CaseTasksTab claimId={claim.id} />
+            </TabsContent>
+            <TabsContent value="audit" className="mt-0">
+              <CaseAuditTab claimId={claim.id} />
+            </TabsContent>
           </div>
         </div>
       </Tabs>
