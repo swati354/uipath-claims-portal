@@ -23,7 +23,7 @@ export function CaseTasksTab({ claim }: CaseTasksTabProps) {
           filter: `CreatorJobKey eq ${claim.instanceId}`,
           pageSize: 50,
         });
-        setTaskList(result.items || []);
+        setTaskList(result?.items || []);
       } catch (err) {
         console.error('Failed to load tasks:', err);
         setError(err instanceof Error ? err.message : 'Failed to load tasks');

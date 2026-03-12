@@ -30,7 +30,7 @@ export function ClaimsList({ onViewClaim }: ClaimsListProps) {
         setError(null);
         const allCases = await cases.getAll();
         const targetCase = allCases.find(
-          (c) => c.name && c.name.toLowerCase().includes('home ho-5')
+          (c) => c?.name && c.name.toLowerCase().includes('home ho-5')
         );
         if (!targetCase) {
           setError('Case process "Home HO-5 claims" not found');

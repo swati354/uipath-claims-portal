@@ -80,7 +80,11 @@ export function HomePage() {
         {currentView === 'dashboard' && <Dashboard onViewAllClaims={() => setCurrentView('claims-list')} />}
         {currentView === 'claims-list' && <ClaimsList onViewClaim={handleViewClaim} />}
         {currentView === 'case-detail' && selectedClaim && (
-          <CaseDetail claim={selectedClaim} onBack={handleBackToList} />
+          <CaseDetail 
+            key={selectedClaim.instanceId} 
+            claim={selectedClaim} 
+            onBack={handleBackToList} 
+          />
         )}
       </div>
       <Toaster richColors closeButton />

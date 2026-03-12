@@ -20,7 +20,7 @@ export function CaseTimelineTab({ claim }: CaseTimelineTabProps) {
         setIsLoading(true);
         setError(null);
         const stagesData = await caseInstances.getStages(claim.instanceId, claim.folderKey);
-        setStages(stagesData);
+        setStages(stagesData || []);
       } catch (err) {
         console.error('Failed to load stages:', err);
         setError(err instanceof Error ? err.message : 'Failed to load timeline');
